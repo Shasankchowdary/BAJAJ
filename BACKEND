@@ -1,0 +1,79 @@
+import React, { useState, useEffect } from 'react';
+import './App.css';
+
+function App() {
+  const [input, setInput] = useState('');
+  const [response, setResponse] = useState(null);
+  const [error, setError] = useState('');
+  const [selectedFields, setSelectedFields] = useState([]);
+
+  useEffect(() => {
+    document.title = 'YOUR_ROLL_NUMBER'; // Replace with your actual roll number
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setResponse(null);
+
+    try {
+      const parsedInput = JSON.parse(input);
+      
+      const res = await fetch('YOUR_BACKEND_URL/bfhl', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(parsedInput)
+      });
+
+      const data = await res.json();
+      setResponse(data);
+    } catch (err) {
+      setError('Invalid JSON input or API error');
+    }
+  };
+
+  const renderFilteredResponse = () => {
+    if (!response) return null;
+
+    const filteredResponse = {};
+    selectedFields.forEach(field => {
+      filteredResponse[field] = response[field];
+    });
+
+    return (
+      <pre>{JSON.stringify(filteredResponse, null, 2)}</pre>
+    );
+  };
+
+  return (
+    <div className="App">
+      <h1>Bajaj Finserv Dev Challenge</h1>
+      <form onSubmit={handleSubmit}>
+        <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder='Enter JSON here (e.g., {"data": ["A","1","B","2","C","3"]})'
+        />
+        <button type="submit">Submit</button>
+      </form>
+      {error && <p className="error">{error}</p>}
+      {response && (
+        <div>
+          <h2>Filter Response:</h2>
+          <select
+            multiple
+            value={selectedFields}
+            onChange={(e) => setSelectedFields(Array.from(e.target.selectedOptions, option => option.value))}
+          >
+            <option value="alphabets">Alphabets</option>
+            <option value="numbers">Numbers</option>
+            <option value="highest_alphabet">Highest Alphabet</option>
+          </select>
+          {renderFilteredResponse()}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default App;
